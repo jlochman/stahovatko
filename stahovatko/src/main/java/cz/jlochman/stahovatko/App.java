@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.Session;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import com.beust.jcommander.JCommander;
 
 import cz.jlochman.stahovatko.domain.DrugCode;
 import cz.jlochman.stahovatko.domain.DrugItem;
@@ -25,15 +28,24 @@ public class App
 {
     public static void main( String[] args )
     {
-    	
+    	CommandLineArguments cla = new CommandLineArguments();
+    	JCommander cmd = new JCommander(cla);    	
+    	try {
+    		cmd.parse(args);
+    		System.out.println( cla.toString() );			
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			cmd.usage();
+		}
+    
     	ServiceLocator services = ServiceLocator.getInstance();
     	DrugItem drug = new DrugItem();
     	drug.setCode( new DrugCode("12345678") );
+    	
     	services.getDrugDao().persistDrugItem( drug );
     	DrugItem drug1 = new DrugItem();
     	drug.setCode( new DrugCode("87654321") );
     	services.getDrugDao().persistDrugItem( drug1 );
-    	
     	
     	/*
         System.out.println( "Hello World!" );

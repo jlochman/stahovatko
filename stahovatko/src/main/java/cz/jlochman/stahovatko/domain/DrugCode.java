@@ -1,5 +1,6 @@
 package cz.jlochman.stahovatko.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -17,14 +18,13 @@ import javax.persistence.Table;
 public class DrugCode {
 	
 	@Id
-    @GeneratedValue
-	@Column(name = "ID")
+    @GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	
-	@Column(name="CODE", nullable = false, length=8)
+	@Column(name="CODE", nullable = false)
 	private String code; 
 	
-	@OneToMany(cascade=CascadeType.ALL)
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "code")
 	private List<DrugItem> drugs;
 	
 	public DrugCode(String code) {
