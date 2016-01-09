@@ -7,6 +7,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 
+import org.hibernate.Session;
+import org.hibernate.sql.ordering.antlr.Factory;
+
 public class HibernateDrugDAO implements DrugDAO {
 
 	private EntityManager em;
@@ -30,9 +33,9 @@ public class HibernateDrugDAO implements DrugDAO {
 		return null;
 	}
 
-	public void persistDrugItem(DrugItem drugItem) {
+	public void persistDrugItem(DrugItem drugItem) {		
 		em.getTransaction().begin();
-		em.persist(drugItem);
+		em.persist( drugItem );
 		em.getTransaction().commit();
 	}
 

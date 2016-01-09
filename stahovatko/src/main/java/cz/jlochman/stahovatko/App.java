@@ -2,11 +2,13 @@ package cz.jlochman.stahovatko;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -14,7 +16,8 @@ import org.jsoup.select.Elements;
 
 import com.beust.jcommander.JCommander;
 
-import cz.jlochman.stahovatko.domain.DrugCode;
+import cz.jlochman.stahovatko.domain.DownDate;
+import cz.jlochman.stahovatko.domain.DrugFile;
 import cz.jlochman.stahovatko.domain.DrugItem;
 import cz.jlochman.stahovatko.services.ServiceLocator;
 
@@ -34,19 +37,30 @@ public class App
     		cmd.parse(args);
     		System.out.println( cla.toString() );			
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			System.out.println( e.getMessage() );
 			cmd.usage();
 		}
     
     	ServiceLocator services = ServiceLocator.getInstance();
+    	    	
     	DrugItem drug = new DrugItem();
-    	drug.setCode( new DrugCode("12345678") );
+    	drug.setAtc("ATC");
+    	drug.setCode("CODE");
+    	//drug.setDownDate( new DownDate( new Date() ));
+    	drug.setName("name");
+    	drug.setNameShort("name_short");
+    	drug.setNameSupp("name_supp");
+    	drug.setPilFile( new DrugFile("PIL file path") );
+    	//drug.setSpcFile( new DrugFile("SPC file path") );
+    	//drug.setId( 16 );
     	
     	services.getDrugDao().persistDrugItem( drug );
+    	
     	DrugItem drug1 = new DrugItem();
-    	drug.setCode( new DrugCode("87654321") );
+    	//drug1.setCode( new DrugCode("87654321") );
     	services.getDrugDao().persistDrugItem( drug1 );
     	
+    	System.out.println( "Hello World!" );
     	/*
         System.out.println( "Hello World!" );
         
