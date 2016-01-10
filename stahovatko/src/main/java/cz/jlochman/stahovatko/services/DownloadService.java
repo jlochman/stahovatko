@@ -55,7 +55,7 @@ public class DownloadService {
 			Elements tableRowElements = tableElement.select("tr");
 						
 			System.out.println("jedu cyklus pres leky");
-			for (int i = 690; i < tableRowElements.size(); i++) {
+			for (int i = 1; i < tableRowElements.size(); i++) {
 				System.out.println("[ " + i + " / " + tableRowElements.size() + " ]");
 				DrugItem drugItem = parseDrugItem( tableRowElements.get(i) );
 				ServiceLocator.getInstance().getDrugDao().persistDrugItem( drugItem );

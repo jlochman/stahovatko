@@ -20,6 +20,8 @@ local.properties
 .recommenders/
 .settings/
 .loadpath
+files/*
+tmpDir/*
 
 # External tool builders
 .externalToolBuilders/
