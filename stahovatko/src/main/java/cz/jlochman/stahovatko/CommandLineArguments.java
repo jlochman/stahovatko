@@ -4,13 +4,13 @@ import com.beust.jcommander.Parameter;
 
 public class CommandLineArguments {
 
-	@Parameter(names = "--inFile", required = false, description = "xls soubor s exportem ze SUKLU.")
+	@Parameter(names = "--inFile", required = true, description = "xls soubor s exportem ze SUKLU.")
 	private String fileName;
 	
-	@Parameter(names = "--workingDir", required = false, description = "adresar, kde ma program dovoleno R/W. Pro ukladani souboru.")
+	@Parameter(names = "--workingDir", required = true, description = "adresar, kde ma program dovoleno R/W. Pro ukladani souboru.")
 	private String workingDir;
 	
-	@Parameter(names = "--exportDir", required = false, description = "adresar, kam se skopiruje dana verze stazeni.")
+	@Parameter(names = "--exportDir", required = true, description = "adresar, kam se skopiruje dana verze stazeni.")
 	private String exportDir;
 	
 	public void help() {

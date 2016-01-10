@@ -27,37 +27,47 @@ public class DownDate {
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "downDate")
 	private List<DrugItem> drugs;
 	
-	public DownDate( Date date ) {
-		this.date = date;
+	public DownDate() {
 	}
 	
 	public Date getDate() {
 		return date;
 	}
 
-
-
 	public void setDate(Date date) {
 		this.date = date;
 	}
-
-
 
 	public long getId() {
 		return id;
 	}
 
-
-
 	public List<DrugItem> getDrugs() {
 		return drugs;
 	}
 
-
-
 	@Override
 	public String toString() {
 		return "[" + id + "]: " + date.toString();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if ( this == obj ) {
+			return true;
+		}
+		if ( obj == null ) {
+			return false;
+		}
+		if ( ! (obj instanceof DownDate) ) {
+			return false;
+		}		
+		final DownDate other = (DownDate) obj;
+		
+		if ( this.date != other.date ) {
+			return false;
+		}
+		return true;
 	}
 	
 }

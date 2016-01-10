@@ -7,11 +7,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
 
 @Entity
 @Table(name = "DRUGS")
@@ -27,13 +24,13 @@ public class DrugItem {
 	@Column(name = "ATC", length = 8)
 	private String atc;
 	
-	@Column(name = "NAME", length = 100)
+	@Column(name = "NAME")
 	private String name;
 	
-	@Column(name = "NAME_SUPP", length = 50)
+	@Column(name = "NAME_SUPP")
 	private String nameSupp;
 		
-	@Column(name = "NAME_SHORT", length = 50)
+	@Column(name = "NAME_SHORT")
 	private String nameShort;
 	
 	@ManyToOne(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
@@ -44,6 +41,9 @@ public class DrugItem {
 	
 	@ManyToOne(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
 	private DrugFile spcFile;
+	
+	public DrugItem() {
+	}
 	
 	@Override
 	public String toString() {
@@ -121,8 +121,5 @@ public class DrugItem {
 	public void setSpcFile(DrugFile spcFile) {
 		this.spcFile = spcFile;
 	}
-	
-
-	
 	
 }

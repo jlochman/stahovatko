@@ -1,7 +1,7 @@
 package cz.jlochman.stahovatko.services;
 
-import cz.jlochman.stahovatko.domain.DrugDAO;
-import cz.jlochman.stahovatko.domain.HibernateDrugDAO;
+import cz.jlochman.stahovatko.dao.DrugDAO;
+import cz.jlochman.stahovatko.dao.HibernateDrugDAO;
 
 public class ServiceLocator {
 
@@ -26,12 +26,11 @@ public class ServiceLocator {
 		return drugDao;
 	}
 
-	/*
 	public DownloadService getDownloadService() {
 		return new DownloadService();
 	}
 
-	
+	/*
 	public ExportService getExportService() {
 		return new ExportService();
 	}
