@@ -21,14 +21,14 @@ public class HibernateDrugDAO implements DrugDAO {
 		em = emf.createEntityManager();
 	}
 
-	public void persistDrugItem(DrugItem drugItem) {
+	public synchronized void persistDrugItem(DrugItem drugItem) {
 		em.getTransaction().begin();
 		em.persist(drugItem);
 		em.getTransaction().commit();
 	}
 	
 	@SuppressWarnings("unchecked")
-	public DrugFile getLastFile(DrugFile newFile) {
+	public synchronized DrugFile getLastFile(DrugFile newFile) {
 		Query query = em.createQuery("FROM DrugFile df WHERE df.fileMD5 = :md5 AND df.fileSize = :size");
 		query.setParameter("md5", newFile.getFileMD5() );
 		query.setParameter("size", newFile.getFileSize() );

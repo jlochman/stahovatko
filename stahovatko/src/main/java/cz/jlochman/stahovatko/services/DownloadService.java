@@ -1,285 +1,86 @@
 package cz.jlochman.stahovatko.services;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.text.Normalizer;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import cz.jlochman.stahovatko.CommandLineArguments;
 import cz.jlochman.stahovatko.domain.DownDate;
 import cz.jlochman.stahovatko.domain.DrugFile;
-import cz.jlochman.stahovatko.domain.DrugItem;
+import cz.jlochman.stahovatko.threadpool.DrugDownloadThread;
 
 public class DownloadService {
-	
-	private String filesDir;
-	private String tmpDir;
+
 	private DownDate downDate = new DownDate();
 	private Map<String, DrugFile> mapLinkFile = new HashMap<String, DrugFile>();
-	
-	public DownloadService() {
-		downDate.setDate( new Date() );
+	private static Logger log = Logger.getLogger(DrugDownloadThread.class);
+
+	public Map<String, DrugFile> getMapLinkFile() {
+		return this.mapLinkFile;
 	}
-	
-	public void downloadAndUpdate( CommandLineArguments cla ) {
-		System.out.println( cla.toString() );
-		
-		this.filesDir = cla.getFilesDir();
-		this.tmpDir = cla.getWorkingDir();
-		prepareDirs();	
-		
-		int startIndex = 0;
-		if ( cla.isDownloadNew() ) {
-			downDate.setDate( new Date() );
-			startIndex = 1;
-		} else {
-			downDate = ServiceLocator.getInstance().getDrugDao().getLastDownDate();
-			startIndex = ServiceLocator.getInstance().getDrugDao().getDrugsForDownDate(downDate).size() + 1;
-		}
-				
+
+	public DownDate getDownDate() {
+		return this.downDate;
+	}
+
+	public void downloadAndUpdate() {
+		prepareDirs();
+		downDate.setDate(new Date());
+
 		try {
-        	File input = new File( cla.getFileName() );
-        	
-        	System.out.println("parsuji leky");
+			File input = new File( ServiceLocator.getInstance().getCommandLineArgsServie().getFileName() );
+
+			log.info("parsuji leky");
 			Document doc = Jsoup.parse(input, "UTF-8");
 			Element tableElement = doc.select("table").first();
 			Elements tableRowElements = tableElement.select("tr");
-						
-			System.out.println("jedu cyklus pres leky");
-			// pozor, prvni objekt v tableRowElements je hlavicka tablky. PRESKOCIT.
-			for (int i = startIndex; i < tableRowElements.size(); i++) {
-				System.out.print("[ " + i + " / " + (tableRowElements.size() - 1) + " ]  ");
-				DrugItem drugItem = parseDrugItem( tableRowElements.get(i) );
-				ServiceLocator.getInstance().getDrugDao().persistDrugItem( drugItem );
-	         }
+			
+			log.info("jedu cyklus pres leky");			
+			List<Integer> indexList = new LinkedList<Integer>();
+			for ( int i = 1; i < tableRowElements.size(); i++ ) indexList.add(i);
+			Collections.shuffle( indexList );
+			ExecutorService executor = Executors.newFixedThreadPool( ServiceLocator.getInstance().getCommandLineArgsServie().getNumThreads() );
+			for (Integer i : indexList) {
+				Runnable worker = new DrugDownloadThread( tableRowElements.get(i) );
+				executor.execute(worker);				
+			}
+			executor.shutdown();
+			while (!executor.isTerminated()) {
+			}
+			
+			log.info("Finished all threads");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void prepareDirs() {
-		if ( this.tmpDir == null || this.tmpDir.isEmpty() ) {
-			System.out.println( "--tmpDir musi byt definovan");
+		String tmpDir = ServiceLocator.getInstance().getCommandLineArgsServie().getWorkingDir();
+		if (tmpDir == null || tmpDir.isEmpty()) {
+			log.info("--tmpDir musi byt definovan");
 			return;
 		}
-		System.out.println("Vytvarim adresar pro stahovani provizornich souboru tmpDir: " + this.tmpDir);
-		new File(this.tmpDir).mkdirs();
-		
-		if ( this.filesDir == null || this.filesDir.isEmpty() ) {
-			System.out.println( "--filesDir musi byt definovan");
+		log.info("Vytvarim adresar tmpDir: " + tmpDir);
+		new File(tmpDir).mkdirs();
+
+		String filesDir = ServiceLocator.getInstance().getCommandLineArgsServie().getFilesDir();
+		if (filesDir == null || filesDir.isEmpty()) {
+			log.info("--filesDir musi byt definovan");
 			return;
 		}
-		System.out.println("Vytvarim adresar pro presun originalnich souboru filesDir: " + this.filesDir);
-		new File(this.filesDir).mkdirs();
+		log.info("Vytvarim adresar filesDir: " + filesDir);
+		new File(filesDir).mkdirs();
+	}
 		
-		System.out.println("Vytvoreno");		
-	}
-	
-	
-
-	private DrugItem parseDrugItem( Element element ) throws IOException {
-		DrugItem drugItem = new DrugItem();
-		
-		Elements rowItems = element.select("td*");
-		drugItem.setDownDate( downDate );
-		drugItem.setCode( rowItems.get(0).text() );
-		drugItem.setName( rowItems.get(1).text() );
-		drugItem.setNameShort( normalizeName( drugItem.getName() ) );
-		drugItem.setNameSupp( rowItems.get(2).text() );
-		drugItem.setAtc( rowItems.get(15).text() );
-		System.out.println( drugItem.getCode() + "  " + drugItem.getName() );
-        
-		String httpFiles = rowItems.get( rowItems.size() - 1 ).text();
-        if ( ! httpFiles.contains("http") ) return drugItem;
-        Document htmlPage = getHtmlPageFromURL( httpFiles );
-        
-        Element table = htmlPage.select("tbody").first();
-        Elements links = table.select("a");
-        for (Element el : links) {
-        	String link = el.attr("abs:href");
-        	Map<String, List<String>> params = getQueryParams( link );
-        	if ( link.contains("sukl.cz") ) {
-	        	String type = params.get("type").get(0);	
-	        	String extension = getFileExtension( params.get("file").get(0) );
-	        	if ( type.equals("pil") ) {
-	        		drugItem.setPilFile( getDrugFile(link, drugItem.getNameShort(), "PIL."+extension) );
-	        	} else if ( type.equals("spc") ) {
-	        		drugItem.setSpcFile( getDrugFile(link, drugItem.getNameShort(), "SPC."+extension) );
-	        	}
-        	} else if ( link.contains("europa.eu") ) {
-        		drugItem.setPilFile( getDrugFile(link, drugItem.getNameShort(), "EMA.pdf") );
-        		drugItem.setSpcFile( getDrugFile(link, drugItem.getNameShort(), "EMA.pdf") );
-        		return drugItem;
-        	}
-		}
-        return drugItem;
-	}
-	
-	private Document getHtmlPageFromURL(String url) {        
-        Document htmlPage;
-        htmlPage = getHtmlWithTimeout(url, 5);
-        if ( htmlPage != null ) return htmlPage;
-        htmlPage = getHtmlWithTimeout(url, 30);
-        if ( htmlPage != null ) return htmlPage;
-        htmlPage = getHtmlWithTimeout(url, 60);
-        if ( htmlPage != null ) return htmlPage;
-        htmlPage = getHtmlWithTimeout(url, 120);
-        return htmlPage;
-	}
-	
-	private Document getHtmlWithTimeout(String url, int timeoutSec) {
-		try {
-			return Jsoup.connect( url ).timeout( timeoutSec ).get();
-		} catch (IOException e) {
-			System.err.println(" [ERROR] htmlPage not loaded with timeout = " + timeoutSec + " sec");
-			return null;
-		}
-	}
-
-	private DrugFile getDrugFile( String link, String drugNameShort, String fileSuffix ) {
-		DrugFile drugFile = new DrugFile();
-		
-		if ( mapLinkFile.containsKey(link) ) return mapLinkFile.get(link);
-		
-		String fileName = downloadToTemp( link, fileSuffix );
-		if ( fileName == null ) return null;
-		File file = new File(fileName);
-		drugFile = createDrugFile( file, drugNameShort );
-		
-		mapLinkFile.put( link, drugFile );
-		
-		return drugFile;
-	}
-	
-	private String downloadToTemp(String downloadURL, String name) {
-		try {
-			System.out.println(" - Stahuji: " + downloadURL);
-			String tmpFilePath = this.tmpDir + File.separator + name;
-			File temp = new File(tmpFilePath);
-
-			URL website = new URL(downloadURL);
-			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-
-			FileOutputStream fos = new FileOutputStream( temp.getAbsolutePath() );
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			fos.close();
-			return temp.getAbsolutePath();
-
-		} catch (IOException e) {
-			System.out.println( " - [ERROR] " + downloadURL + " se nepodarilo stahnout");
-			return null;
-		}
-	}
-	
-	private String normalizeName( String name ) {
-		String result = Normalizer.normalize(name, Normalizer.Form.NFD);
-		result = result.replaceAll("[^A-Za-z0-9 ]", "");
-		result = result.replaceAll("  ", " ");
-		result = result.replace(' ', '-');
-		return result;
-	}
-	
-	private String getFileExtension(String fileName) {
-	    try {
-	        return fileName.substring(fileName.lastIndexOf(".") + 1);
-	    } catch (Exception e) {
-	        return "";
-	    }
-	}
-	
-	private boolean copyFileToSaveDir( DrugFile drugFile, File tmpFile, String drugNameShort ) {
-		String saveFilePath = this.filesDir + File.separator + drugNameShort + "_" + drugFile.getFileMD5() + "_" + tmpFile.getName();
-		File saveFile = new File( saveFilePath );
-		try {
-			copyFileUsingStream( tmpFile, saveFile );
-			drugFile.setFilePath( saveFile.getName() );
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-	
-	private void copyFileUsingStream(File source, File dest) throws IOException {
-	    InputStream is = null;
-	    OutputStream os = null;
-	    try {
-	        is = new FileInputStream(source);
-	        os = new FileOutputStream(dest);
-	        byte[] buffer = new byte[1024];
-	        int length;
-	        while ((length = is.read(buffer)) > 0) {
-	            os.write(buffer, 0, length);
-	        }
-	    } finally {
-	        is.close();
-	        os.close();
-	    }
-	}
-	
-	
-	private DrugFile createDrugFile(File file, String drugNameShort) {
-		DrugFile newFile = createNewDrugFile( file );
-		DrugFile oldFile = ServiceLocator.getInstance().getDrugDao().getLastFile( newFile );
-		if ( newFile.equals(oldFile) ) {
-			return oldFile; 
-		} else {
-			copyFileToSaveDir(newFile, file, drugNameShort);
-			return newFile;
-		}
-	}
-	
-	private DrugFile createNewDrugFile(File file) {
-		DrugFile newFile = new DrugFile();
-		newFile.extractFromFile( file );
-		return newFile;
-	}
-	
-	public Map<String, List<String>> getQueryParams(String url) {
-	    try {
-	        Map<String, List<String>> params = new HashMap<String, List<String>>();
-	        String[] urlParts = url.split("\\?");
-	        if (urlParts.length > 1) {
-	            String query = urlParts[1];
-	            for (String param : query.split("&")) {
-	                String[] pair = param.split("=");
-	                String key = URLDecoder.decode(pair[0], "UTF-8");
-	                String value = "";
-	                if (pair.length > 1) {
-	                    value = URLDecoder.decode(pair[1], "UTF-8");
-	                }
-
-	                List<String> values = params.get(key);
-	                if (values == null) {
-	                    values = new ArrayList<String>();
-	                    params.put(key, values);
-	                }
-	                values.add(value);
-	            }
-	        }
-
-	        return params;
-	    } catch (UnsupportedEncodingException ex) {
-	        throw new AssertionError(ex);
-	    }
-	}
-
 }

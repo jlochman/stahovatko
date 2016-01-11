@@ -21,6 +21,7 @@ local.properties
 .settings/
 .loadpath
 files/*
+filesTemp/*
 tmpDir/*
 
 # External tool builders

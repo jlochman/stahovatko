@@ -1,35 +1,26 @@
 package cz.jlochman.stahovatko;
 
-import com.beust.jcommander.JCommander;
+import org.apache.log4j.Logger;
+
 import cz.jlochman.stahovatko.services.ServiceLocator;
 
 public class App 
 {
 	
+	private static Logger log = Logger.getLogger(App.class);
+	
     public static void main( String[] args )
-    {
-    	CommandLineArguments cla = new CommandLineArguments();
-    	JCommander cmd = new JCommander(cla);    	
+    {    	
+    	ServiceLocator services = ServiceLocator.getInstance();
+    	log.info("parsuji argumenty z CL");
+    	services.getCommandLineArgsServie().parseAndSaveArgs( args );
     	
-    	try {
-    		cmd.parse(args);
-    		System.out.println( cla.toString() );			
-		} catch (Exception e) {
-			System.out.println( e.getMessage() );
-			cmd.usage();
-		}
-    	if ( cla.isHelp() ) {
-    		cmd.usage();
-    		return;
+    	if ( services.getCommandLineArgsServie().isDownload() ) {
+    		log.info("zahajuji stahovani");
+    		services.getDownloadService().downloadAndUpdate();
     	}
     	
-    
-    	ServiceLocator services = ServiceLocator.getInstance();
-    	
-    	if ( cla.isDownloadContinue() || cla.isDownloadNew() )
-    		services.getDownloadService().downloadAndUpdate( cla );
-    	
-    	System.out.println( "Hotovo!" );
+    	log.info( "Hotovo!" );
     }
 
 }

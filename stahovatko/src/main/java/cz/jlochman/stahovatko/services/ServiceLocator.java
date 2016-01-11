@@ -7,6 +7,8 @@ public class ServiceLocator {
 
 	private static ServiceLocator instance;
 	private static DrugDAO drugDao;
+	private static DownloadService downloadSerivce;
+	private static CommandLineArgsService claService;
 	
 	private ServiceLocator(){};
 
@@ -19,7 +21,9 @@ public class ServiceLocator {
 	}
 
 	private void init() {
-		drugDao = new HibernateDrugDAO();	
+		drugDao = new HibernateDrugDAO();
+		downloadSerivce = new DownloadService();
+		claService = new CommandLineArgsService();
 	}
 	
 	public DrugDAO getDrugDao() {
@@ -27,12 +31,11 @@ public class ServiceLocator {
 	}
 
 	public DownloadService getDownloadService() {
-		return new DownloadService();
+		return downloadSerivce;
+	}
+	
+	public CommandLineArgsService getCommandLineArgsServie() {
+		return claService;
 	}
 
-	/*
-	public ExportService getExportService() {
-		return new ExportService();
-	}
-	*/
 }
