@@ -30,7 +30,7 @@ import cz.jlochman.stahovatko.domain.DrugItem;
 
 public class DownloadService {
 	
-	private String savePath;
+	private String filesDir;
 	private String tmpDir;
 	private DownDate downDate = new DownDate();
 	private Map<String, DrugFile> mapLinkFile = new HashMap<String, DrugFile>();
@@ -41,11 +41,20 @@ public class DownloadService {
 	
 	public void downloadAndUpdate( CommandLineArguments cla ) {
 		System.out.println( cla.toString() );
-		this.savePath = cla.getExportDir();
+		
+		this.filesDir = cla.getFilesDir();
 		this.tmpDir = cla.getWorkingDir();
+		prepareDirs();	
 		
-		prepareDirs();
-		
+		int startIndex = 0;
+		if ( cla.isDownloadNew() ) {
+			downDate.setDate( new Date() );
+			startIndex = 1;
+		} else {
+			downDate = ServiceLocator.getInstance().getDrugDao().getLastDownDate();
+			startIndex = ServiceLocator.getInstance().getDrugDao().getDrugsForDownDate(downDate).size() + 1;
+		}
+				
 		try {
         	File input = new File( cla.getFileName() );
         	
@@ -55,8 +64,9 @@ public class DownloadService {
 			Elements tableRowElements = tableElement.select("tr");
 						
 			System.out.println("jedu cyklus pres leky");
-			for (int i = 1; i < tableRowElements.size(); i++) {
-				System.out.println("[ " + i + " / " + tableRowElements.size() + " ]");
+			// pozor, prvni objekt v tableRowElements je hlavicka tablky. PRESKOCIT.
+			for (int i = startIndex; i < tableRowElements.size(); i++) {
+				System.out.print("[ " + i + " / " + (tableRowElements.size() - 1) + " ]  ");
 				DrugItem drugItem = parseDrugItem( tableRowElements.get(i) );
 				ServiceLocator.getInstance().getDrugDao().persistDrugItem( drugItem );
 	         }
@@ -66,11 +76,19 @@ public class DownloadService {
 	}
 	
 	private void prepareDirs() {
+		if ( this.tmpDir == null || this.tmpDir.isEmpty() ) {
+			System.out.println( "--tmpDir musi byt definovan");
+			return;
+		}
 		System.out.println("Vytvarim adresar pro stahovani provizornich souboru tmpDir: " + this.tmpDir);
 		new File(this.tmpDir).mkdirs();
 		
-		System.out.println("Vytvarim adresar pro presun originalnich souboru savePath: " + this.savePath);
-		new File(this.savePath).mkdirs();
+		if ( this.filesDir == null || this.filesDir.isEmpty() ) {
+			System.out.println( "--filesDir musi byt definovan");
+			return;
+		}
+		System.out.println("Vytvarim adresar pro presun originalnich souboru filesDir: " + this.filesDir);
+		new File(this.filesDir).mkdirs();
 		
 		System.out.println("Vytvoreno");		
 	}
@@ -87,10 +105,11 @@ public class DownloadService {
 		drugItem.setNameShort( normalizeName( drugItem.getName() ) );
 		drugItem.setNameSupp( rowItems.get(2).text() );
 		drugItem.setAtc( rowItems.get(15).text() );
+		System.out.println( drugItem.getCode() + "  " + drugItem.getName() );
         
 		String httpFiles = rowItems.get( rowItems.size() - 1 ).text();
         if ( ! httpFiles.contains("http") ) return drugItem;
-        Document htmlPage = Jsoup.connect( httpFiles ).get();
+        Document htmlPage = getHtmlPageFromURL( httpFiles );
         
         Element table = htmlPage.select("tbody").first();
         Elements links = table.select("a");
@@ -114,6 +133,27 @@ public class DownloadService {
         return drugItem;
 	}
 	
+	private Document getHtmlPageFromURL(String url) {        
+        Document htmlPage;
+        htmlPage = getHtmlWithTimeout(url, 5);
+        if ( htmlPage != null ) return htmlPage;
+        htmlPage = getHtmlWithTimeout(url, 30);
+        if ( htmlPage != null ) return htmlPage;
+        htmlPage = getHtmlWithTimeout(url, 60);
+        if ( htmlPage != null ) return htmlPage;
+        htmlPage = getHtmlWithTimeout(url, 120);
+        return htmlPage;
+	}
+	
+	private Document getHtmlWithTimeout(String url, int timeoutSec) {
+		try {
+			return Jsoup.connect( url ).timeout( timeoutSec ).get();
+		} catch (IOException e) {
+			System.err.println(" [ERROR] htmlPage not loaded with timeout = " + timeoutSec + " sec");
+			return null;
+		}
+	}
+
 	private DrugFile getDrugFile( String link, String drugNameShort, String fileSuffix ) {
 		DrugFile drugFile = new DrugFile();
 		
@@ -166,7 +206,7 @@ public class DownloadService {
 	}
 	
 	private boolean copyFileToSaveDir( DrugFile drugFile, File tmpFile, String drugNameShort ) {
-		String saveFilePath = this.savePath + File.separator + drugNameShort + "_" + drugFile.getFileMD5() + "_" + tmpFile.getName();
+		String saveFilePath = this.filesDir + File.separator + drugNameShort + "_" + drugFile.getFileMD5() + "_" + tmpFile.getName();
 		File saveFile = new File( saveFilePath );
 		try {
 			copyFileUsingStream( tmpFile, saveFile );

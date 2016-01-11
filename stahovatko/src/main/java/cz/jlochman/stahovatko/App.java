@@ -10,6 +10,7 @@ public class App
     {
     	CommandLineArguments cla = new CommandLineArguments();
     	JCommander cmd = new JCommander(cla);    	
+    	
     	try {
     		cmd.parse(args);
     		System.out.println( cla.toString() );			
@@ -17,9 +18,16 @@ public class App
 			System.out.println( e.getMessage() );
 			cmd.usage();
 		}
+    	if ( cla.isHelp() ) {
+    		cmd.usage();
+    		return;
+    	}
+    	
     
     	ServiceLocator services = ServiceLocator.getInstance();
-    	services.getDownloadService().downloadAndUpdate( cla );
+    	
+    	if ( cla.isDownloadContinue() || cla.isDownloadNew() )
+    		services.getDownloadService().downloadAndUpdate( cla );
     	
     	System.out.println( "Hotovo!" );
     }

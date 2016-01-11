@@ -7,6 +7,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 
+import cz.jlochman.stahovatko.domain.DownDate;
 import cz.jlochman.stahovatko.domain.DrugFile;
 import cz.jlochman.stahovatko.domain.DrugItem;
 
@@ -36,6 +37,23 @@ public class HibernateDrugDAO implements DrugDAO {
 			return new DrugFile();
 		else return fileList.get(0);
 	}
+
+	@SuppressWarnings("unchecked")
+	public DownDate getLastDownDate() {
+		Query query = em.createQuery("FROM DownDate ORDER BY id DESC");
+		List<DownDate> downDates = query.getResultList();
+		if ( downDates == null || downDates.isEmpty() ) return null;
+		else return downDates.get(0);
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<DrugItem> getDrugsForDownDate(DownDate downDate) {
+		Query query = em.createQuery("FROM DrugItem di WHERE di.downDate = :downDate");
+		query.setParameter("downDate", downDate);
+		return query.getResultList();
+	}
+	
+	
 
 
 
