@@ -23,6 +23,7 @@ local.properties
 files/*
 filesTemp/*
 tmpDir/*
+*.log*
 
 # External tool builders
 .externalToolBuilders/

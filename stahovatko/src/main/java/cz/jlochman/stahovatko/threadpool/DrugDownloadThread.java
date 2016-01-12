@@ -10,7 +10,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import cz.jlochman.stahovatko.App;
 import cz.jlochman.stahovatko.domain.DrugFile;
 import cz.jlochman.stahovatko.domain.DrugItem;
 import cz.jlochman.stahovatko.helpers.FileHelper;
@@ -50,8 +49,7 @@ public class DrugDownloadThread implements Runnable {
 		log.info(drugItem.getCode() + "  " + drugItem.getName());
 		
 		String httpFiles = rowItems.get(rowItems.size() - 1).text();
-		if (!httpFiles.contains("http"))
-			return drugItem;
+		if ( ! httpFiles.contains("http") ) return drugItem;
 		Document htmlPage = FileHelper.getHtmlPageFromURL(httpFiles);
 
 		Element table = htmlPage.select("tbody").first();
@@ -63,17 +61,13 @@ public class DrugDownloadThread implements Runnable {
 				String type = params.get("type").get(0);
 				String extension = FileHelper.getFileExtension(params.get("file").get(0));
 				if (type.equals("pil")) {
-					drugItem.setPilFile(getDrugFile(link,
-							drugItem.getNameShort(), "PIL." + extension));
+					drugItem.setPilFile(getDrugFile(link, drugItem.getNameShort(), "PIL." + extension));
 				} else if (type.equals("spc")) {
-					drugItem.setSpcFile(getDrugFile(link,
-							drugItem.getNameShort(), "SPC." + extension));
+					drugItem.setSpcFile(getDrugFile(link, drugItem.getNameShort(), "SPC." + extension));
 				}
 			} else if (link.contains("europa.eu")) {
-				drugItem.setPilFile(getDrugFile(link, drugItem.getNameShort(),
-						"EMA.pdf"));
-				drugItem.setSpcFile(getDrugFile(link, drugItem.getNameShort(),
-						"EMA.pdf"));
+				drugItem.setPilFile(getDrugFile(link, drugItem.getNameShort(), "EMA.pdf"));
+				drugItem.setSpcFile(getDrugFile(link, drugItem.getNameShort(), "EMA.pdf"));
 				return drugItem;
 			}
 		}

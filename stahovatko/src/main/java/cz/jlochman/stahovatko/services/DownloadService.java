@@ -1,12 +1,10 @@
 package cz.jlochman.stahovatko.services;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -46,19 +44,20 @@ public class DownloadService {
 			Element tableElement = doc.select("table").first();
 			Elements tableRowElements = tableElement.select("tr");
 			
-			log.info("jedu cyklus pres leky");			
-			List<Integer> indexList = new LinkedList<Integer>();
-			for ( int i = 1; i < tableRowElements.size(); i++ ) indexList.add(i);
-			Collections.shuffle( indexList );
+			log.info("jedu cyklus pres leky");				
+			if ( tableRowElements == null || tableRowElements.isEmpty() ) return;
+			tableRowElements.remove(0);
+			Random rand = new Random();
 			ExecutorService executor = Executors.newFixedThreadPool( ServiceLocator.getInstance().getCommandLineArgsServie().getNumThreads() );
-			for (Integer i : indexList) {
+			while ( tableRowElements.size() > 0 ) {
+				int i = rand.nextInt( tableRowElements.size() );
 				Runnable worker = new DrugDownloadThread( tableRowElements.get(i) );
-				executor.execute(worker);				
+				executor.execute(worker);	
+				tableRowElements.remove(i);
 			}
 			executor.shutdown();
 			while (!executor.isTerminated()) {
 			}
-			
 			log.info("Finished all threads");
 		} catch (Exception e) {
 			e.printStackTrace();
