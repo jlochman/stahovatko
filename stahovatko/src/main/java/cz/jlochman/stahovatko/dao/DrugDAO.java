@@ -11,5 +11,8 @@ public interface DrugDAO {
 	public DrugFile getLastFile(DrugFile newFile);
 	
 	public DownDate getLastDownDate();
+	public DownDate getDownDateByID( long id );
+	
+	public List<DownDate> getAllDownDates();
 	public List<DrugItem> getDrugsForDownDate( DownDate downDate );
 }

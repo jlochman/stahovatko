@@ -8,6 +8,9 @@ public class CommandLineArgsService {
 	@Parameter(names = "-h --help", description = "zobrazit napovedu")
 	private boolean help = false;
 	
+	@Parameter(names = "-downDates", description = "zobrazit veskera data stahovani")
+	private boolean showDownDates = false;
+	
 	@Parameter(names = "-d", description = "download")
 	private boolean download = false;
 
@@ -22,6 +25,12 @@ public class CommandLineArgsService {
 
 	@Parameter(names = "--filesDir", required = false, description = "adresar, kam se budou ukladat stazene unikatni soubory.")
 	private String filesDir;
+	
+	@Parameter(names = "--exportFile", required = false, description = "soubor, ktery bude pouzit pro export dat")
+	private String exportFile = "/Users/jlochman/Documents/stahovatko/export.txt";
+	
+	@Parameter(names = "-e", description = "export")
+	private boolean export = false;
 
 	public void parseAndSaveArgs(String[] args) {
     	JCommander cmd = new JCommander( ServiceLocator.getInstance().getCommandLineArgsServie() );    	
@@ -88,4 +97,30 @@ public class CommandLineArgsService {
 		this.numThreads = numThreads;
 	}
 
+	public boolean isExport() {
+		return export;
+	}
+
+	public void setExport(boolean export) {
+		this.export = export;
+	}
+	
+	public boolean isShowDownDates() {
+		return showDownDates;
+	}
+
+	public void setShowDownDates(boolean showDownDates) {
+		this.showDownDates = showDownDates;
+	}
+
+	public String getExportFile() {
+		return exportFile;
+	}
+
+	public void setExportFile(String exportFile) {
+		this.exportFile = exportFile;
+	}
+	
+	
+	
 }

@@ -21,12 +21,14 @@ public class HibernateDrugDAO implements DrugDAO {
 		em = emf.createEntityManager();
 	}
 
+	@Override
 	public synchronized void persistDrugItem(DrugItem drugItem) {
 		em.getTransaction().begin();
 		em.persist(drugItem);
 		em.getTransaction().commit();
 	}
 	
+	@Override
 	@SuppressWarnings("unchecked")
 	public synchronized DrugFile getLastFile(DrugFile newFile) {
 		Query query = em.createQuery("FROM DrugFile df WHERE df.fileMD5 = :md5 AND df.fileSize = :size");
@@ -38,6 +40,7 @@ public class HibernateDrugDAO implements DrugDAO {
 		else return fileList.get(0);
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public DownDate getLastDownDate() {
 		Query query = em.createQuery("FROM DownDate ORDER BY id DESC");
@@ -45,11 +48,29 @@ public class HibernateDrugDAO implements DrugDAO {
 		if ( downDates == null || downDates.isEmpty() ) return null;
 		else return downDates.get(0);
 	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public DownDate getDownDateByID(long id) {
+		Query query = em.createQuery("FROM DownDate dd WHERE dd.id = :id");
+		query.setParameter("id", id);
+		List<DownDate> downDates = query.getResultList();
+		if ( downDates == null || downDates.isEmpty() ) return null;
+		else return downDates.get(0);
+	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public List<DrugItem> getDrugsForDownDate(DownDate downDate) {
 		Query query = em.createQuery("FROM DrugItem di WHERE di.downDate = :downDate");
 		query.setParameter("downDate", downDate);
+		return query.getResultList();
+	}
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<DownDate> getAllDownDates() {
+		Query query = em.createQuery("FROM DownDate ORDER BY id DESC");
 		return query.getResultList();
 	}
 	

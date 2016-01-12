@@ -13,11 +13,21 @@ public class App
     {    	
     	ServiceLocator services = ServiceLocator.getInstance();
     	log.info("parsuji argumenty z CL");
-    	services.getCommandLineArgsServie().parseAndSaveArgs( args );
+    	services.getCommandLineArgsServie().parseAndSaveArgs( args );	
     	
     	if ( services.getCommandLineArgsServie().isDownload() ) {
     		log.info("zahajuji stahovani");
     		services.getDownloadService().downloadAndUpdate();
+    	}
+    	
+    	if ( services.getCommandLineArgsServie().isShowDownDates() ) {
+    		log.info("zobrazuji vsechna data, ve kterych se stahovalo");
+    		services.getExportService().printDownDates();
+    	}
+
+    	if ( services.getCommandLineArgsServie().isExport() ) {
+    		log.info("zahajuji export dat");
+    		services.getExportService().saveDrugs( services.getDrugDao().getDownDateByID(2) );
     	}
     	
     	log.info( "Hotovo!" );

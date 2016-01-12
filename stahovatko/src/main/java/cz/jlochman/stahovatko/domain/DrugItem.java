@@ -12,7 +12,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "DRUGS")
-public class DrugItem {
+public class DrugItem implements Comparable<DrugItem> {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -120,6 +120,11 @@ public class DrugItem {
 
 	public void setSpcFile(DrugFile spcFile) {
 		this.spcFile = spcFile;
+	}
+
+	@Override
+	public int compareTo(DrugItem o) {
+		return this.getCode().compareTo(o.getCode());
 	}
 	
 }
