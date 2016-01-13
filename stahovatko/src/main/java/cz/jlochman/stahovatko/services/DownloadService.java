@@ -34,7 +34,13 @@ public class DownloadService {
 
 	public void downloadAndUpdate() {
 		prepareDirs();
-		downDate.setDate(new Date());
+		if ( ServiceLocator.getInstance().getCommandLineArgsServie().isNewDownload() ) {
+			log.info("zahajuji nove stahovani");
+			downDate.setDate(new Date());			
+		} else {
+			log.info("pokracuji v poslednim stahovani");
+			downDate = ServiceLocator.getInstance().getDrugDao().getLastDownDate();
+		}
 
 		try {
 			File input = new File( ServiceLocator.getInstance().getCommandLineArgsServie().getFileName() );

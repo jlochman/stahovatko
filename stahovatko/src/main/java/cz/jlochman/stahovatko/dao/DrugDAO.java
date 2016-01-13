@@ -13,6 +13,8 @@ public interface DrugDAO {
 	public DownDate getLastDownDate();
 	public DownDate getDownDateByID( long id );
 	
+	public boolean isPersisted(DrugItem drugItem);
+	
 	public List<DownDate> getAllDownDates();
 	public List<DrugItem> getDrugsForDownDate( DownDate downDate );
 }

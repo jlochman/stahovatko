@@ -13,20 +13,23 @@ public class CommandLineArgsService {
 	
 	@Parameter(names = "-d", description = "download")
 	private boolean download = false;
-
+	
+	@Parameter(names = "-newDownload", description = "zacit nove stahovani")
+	private boolean newDownload = false;
+	
 	@Parameter(names = "--threads", description = "pocet vlaken ke stahovani")
-	private int numThreads = 10;
+	private int numThreads = 20;
 
-	@Parameter(names = "--inFile", required = false, description = "xls soubor s exportem ze SUKLU.")
+	@Parameter(names = "--inFile", description = "xls soubor s exportem ze SUKLU.")
 	private String fileName;
 
-	@Parameter(names = "--workingDir", required = false, description = "adresar, kde ma program dovoleno R/W. Pro ukladani souboru.")
+	@Parameter(names = "--workingDir", description = "adresar, kde ma program dovoleno R/W. Pro ukladani souboru.")
 	private String workingDir;
 
-	@Parameter(names = "--filesDir", required = false, description = "adresar, kam se budou ukladat stazene unikatni soubory.")
+	@Parameter(names = "--filesDir", description = "adresar, kam se budou ukladat stazene unikatni soubory.")
 	private String filesDir;
 	
-	@Parameter(names = "--exportFile", required = false, description = "soubor, ktery bude pouzit pro export dat")
+	@Parameter(names = "--exportFile", description = "soubor, ktery bude pouzit pro export dat")
 	private String exportFile = "/Users/jlochman/Documents/stahovatko/export.txt";
 	
 	@Parameter(names = "-e", description = "export")
@@ -119,6 +122,14 @@ public class CommandLineArgsService {
 
 	public void setExportFile(String exportFile) {
 		this.exportFile = exportFile;
+	}
+
+	public boolean isNewDownload() {
+		return newDownload;
+	}
+
+	public void setNewDownload(boolean newDownload) {
+		this.newDownload = newDownload;
 	}
 	
 	

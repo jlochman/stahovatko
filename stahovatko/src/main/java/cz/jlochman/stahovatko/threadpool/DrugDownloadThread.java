@@ -30,7 +30,10 @@ public class DrugDownloadThread implements Runnable {
 	public void run() {
 		try {
 			DrugItem drugItem = parseDrugItem( htmlInput );
-			services.getDrugDao().persistDrugItem( drugItem );
+			if ( drugItem != null ) {
+				log.info( "PERSISTING: " + drugItem.getCode() + "  " + drugItem.getName() );
+				services.getDrugDao().persistDrugItem( drugItem );
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -46,8 +49,16 @@ public class DrugDownloadThread implements Runnable {
 		drugItem.setNameShort(StringHelper.normalizeDrugName(drugItem.getName()));
 		drugItem.setNameSupp(rowItems.get(2).text());
 		drugItem.setAtc(rowItems.get(15).text());
-		log.info(drugItem.getCode() + "  " + drugItem.getName());
 		
+		// kontrola, zda dany lek se uz nepersistoval
+		if ( ! ServiceLocator.getInstance().getCommandLineArgsServie().isNewDownload() ) {
+			if ( ServiceLocator.getInstance().getDrugDao().isPersisted(drugItem) ) {
+				log.info( "ALREADY PERSISTED: " + drugItem.getCode() + "  " + drugItem.getName() );
+				return null;
+			}
+		}
+		log.info(drugItem.getCode() + "  " + drugItem.getName());
+
 		String httpFiles = rowItems.get(rowItems.size() - 1).text();
 		if ( ! httpFiles.contains("http") ) return drugItem;
 		Document htmlPage = FileHelper.getHtmlPageFromURL(httpFiles);

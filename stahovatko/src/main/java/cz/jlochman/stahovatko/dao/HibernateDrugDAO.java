@@ -73,6 +73,17 @@ public class HibernateDrugDAO implements DrugDAO {
 		Query query = em.createQuery("FROM DownDate ORDER BY id DESC");
 		return query.getResultList();
 	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public synchronized boolean isPersisted(DrugItem drugItem) {
+		Query query = em.createQuery("FROM DrugItem di WHERE di.code = :code AND di.downDate = :downDate");
+		query.setParameter("code", drugItem.getCode());
+		query.setParameter("downDate", drugItem.getDownDate());
+		List<DrugItem> drugs = query.getResultList();
+		if ( drugs == null || drugs.isEmpty() ) return false;
+		else return true;
+	}
 	
 	
 
