@@ -24,6 +24,11 @@ public class App
     		log.info("zobrazuji vsechna data, ve kterych se stahovalo");
     		services.getExportService().printDownDates();
     	}
+    	
+    	if ( services.getCommandLineArgsServie().isCompareLastDownDates() ) {
+    		log.info("porovnavam posledni dve stahovai");
+    		services.getExportService().compareLastDownDates();
+    	}
 
     	if ( services.getCommandLineArgsServie().isExport() ) {
     		log.info("zahajuji export dat");

@@ -11,6 +11,12 @@ public class CommandLineArgsService {
 	@Parameter(names = "-downDates", description = "zobrazit veskera data stahovani")
 	private boolean showDownDates = false;
 	
+	@Parameter(names = "-c", description = "compare last two downDates")
+	private boolean compareLastDownDates = false;
+	
+	@Parameter(names = "--compareFile", description = "soubor pro export porovnani")
+	private String compareFile;
+	
 	@Parameter(names = "-d", description = "download")
 	private boolean download = false;
 	
@@ -132,6 +138,23 @@ public class CommandLineArgsService {
 		this.newDownload = newDownload;
 	}
 	
+	public boolean isCompareLastDownDates() {
+		return compareLastDownDates;
+	}
+
+	public void setCompareLastDownDates(boolean compareLastDownDates) {
+		this.compareLastDownDates = compareLastDownDates;
+	}
+
+	public String getCompareFile() {
+		return compareFile;
+	}
+
+	public void setCompareFile(String compareFile) {
+		this.compareFile = compareFile;
+	}
+
 	
+
 	
 }

@@ -121,6 +121,47 @@ public class DrugItem implements Comparable<DrugItem> {
 	public void setSpcFile(DrugFile spcFile) {
 		this.spcFile = spcFile;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if ( this == obj ) {
+			return true;
+		}
+		if ( obj == null ) {
+			return false;
+		}
+		if ( ! (obj instanceof DrugItem) ) {
+			return false;
+		}		
+		final DrugItem other = (DrugItem) obj;
+		
+		if ( ! this.code.equals( other.code ) ) {
+			return false;
+		}
+		if ( ! this.name.equals( other.name ) ) {
+			return false;
+		}
+		if ( ! this.nameSupp.equals( other.nameSupp ) ) {
+			return false;
+		}
+		if ( ! this.atc.equals( other.atc ) ) {
+			return false;
+		}
+		if ( ! equalDrugFiles(this.getPilFile(), other.getPilFile()) ) {
+			return false;
+		}
+		if ( ! equalDrugFiles(this.getSpcFile(), other.getSpcFile()) ) {
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean equalDrugFiles( DrugFile df1, DrugFile df2 ) {
+		if ( df1 == null && df2 == null ) return true;
+		else if ( df1 == null && df2 != null ) return false;
+		else if ( df1 != null && df2 == null ) return false;
+		else return df1.getFileMD5().equals( df2.getFileMD5() );
+	}
 
 	@Override
 	public int compareTo(DrugItem o) {

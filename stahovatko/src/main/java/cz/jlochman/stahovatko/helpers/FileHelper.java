@@ -28,7 +28,7 @@ public class FileHelper {
 	
 	public static Document getHtmlPageFromURL(String url) {
 		Document htmlPage;
-		htmlPage = getHtmlWithTimeout(url, 5);
+		htmlPage = getHtmlWithTimeout(url, 10);
 		if (htmlPage != null)
 			return htmlPage;
 		htmlPage = getHtmlWithTimeout(url, 30);
